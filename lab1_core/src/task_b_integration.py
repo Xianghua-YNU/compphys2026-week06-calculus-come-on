@@ -1,23 +1,45 @@
 import math
 
-
 def debye_integrand(x: float) -> float:
     if abs(x) < 1e-12:
         return 0.0
     ex = math.exp(x)
     return (x**4) * ex / ((ex - 1.0) ** 2)
 
-
 def trapezoid_composite(f, a: float, b: float, n: int) -> float:
-    # TODO B1: 实现复合梯形积分
-    raise NotImplementedError("TODO B1")
-
+    if n <= 0:
+        raise ValueError("n must be a positive integer")
+    h = (b - a) / n
+    total = 0.5 * (f(a) + f(b))
+    for i in range(1, n):
+        x = a + i * h
+        total += f(x)
+    return total * h
 
 def simpson_composite(f, a: float, b: float, n: int) -> float:
-    # TODO B2: 实现复合 Simpson 积分，并检查 n 为偶数
-    raise NotImplementedError("TODO B2")
-
+    # 严格校验n为偶数，符合测试用例要求
+    if n % 2 != 0:
+        raise ValueError("n must be even for Simpson's rule")
+    if n <= 0:
+        raise ValueError("n must be a positive integer")
+    h = (b - a) / n
+    total = f(a) + f(b)
+    # 奇数项4倍权重，偶数项2倍权重
+    for i in range(1, n, 2):
+        x = a + i * h
+        total += 4 * f(x)
+    for i in range(2, n, 2):
+        x = a + i * h
+        total += 2 * f(x)
+    return total * h / 3.0
 
 def debye_integral(T: float, theta_d: float = 428.0, method: str = "simpson", n: int = 200) -> float:
-    # TODO B3: 计算 Debye 积分 I(theta_d/T)
-    raise NotImplementedError("TODO B3")
+    if T <= 0:
+        raise ValueError("Temperature T must be positive")
+    y = theta_d / T
+    if method.lower() == "trapezoid":
+        return trapezoid_composite(debye_integrand, 0.0, y, n)
+    elif method.lower() == "simpson":
+        return simpson_composite(debye_integrand, 0.0, y, n)
+    else:
+        raise ValueError(f"Unknown method: {method}, choose 'trapezoid' or 'simpson'")
