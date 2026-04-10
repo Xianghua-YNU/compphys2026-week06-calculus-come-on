@@ -1,40 +1,29 @@
-import math
 import numpy as np
 
-def ring_potential_point(x, y, z, a=1.0, q=1.0, n_phi=720):
-    dphi = 2 * math.pi / n_phi
-    v_sum = 0.0
+def ring_potential_point(x: float, y: float, z: float, a: float = 1.0, q: float = 1.0, n_phi: int = 720) -> float:
+    # 离散积分：phi从0到2π，梯形法近似
+    phi = np.linspace(0, 2 * np.pi, n_phi, endpoint=False)
+    dphi = 2 * np.pi / n_phi
+    dx = x - a * np.cos(phi)
+    dy = y - a * np.sin(phi)
+    r = np.sqrt(dx**2 + dy**2 + z**2)
+    # 避免r=0奇点，截断到1e-10
+    r[r < 1e-10] = 1e-10
+    integrand = 1.0 / r
+    # 梯形法积分
+    integral = np.sum(integrand) * dphi
+    return (q / (2 * np.pi)) * integral
 
-    for i in range(n_phi):
-        phi = i * dphi
-        dx = x - a * math.cos(phi)
-        dy = y - a * math.sin(phi)
-        r_sq = dx**2 + dy**2 + z**2
-
-        # ===================== 老师要求的奇点处理 =====================
-        if r_sq < 1e-12:
-            inv_r = 0.0
-        else:
-            inv_r = 1.0 / math.sqrt(r_sq)
-        # ==============================================================
-
-        v_sum += inv_r
-
-    V = q * v_sum * dphi / (2 * math.pi)
-    return V
-
-def axis_potential_analytic(z, a=1.0, q=1.0):
-    return q / (2 * math.sqrt(a**2 + z**2))
-
-def ring_potential_grid(ys, zs, x0=0.0, a=1.0, q=1.0, n_phi=360):
-    ny = len(ys)
-    nz = len(zs)
+def ring_potential_grid(y_grid, z_grid, x0: float = 0.0, a: float = 1.0, q: float = 1.0, n_phi: int = 720):
+    ny = len(y_grid)
+    nz = len(z_grid)
     V = np.zeros((nz, ny))
-
     for i in range(nz):
-        z = zs[i]
+        z = z_grid[i]
         for j in range(ny):
-            y = ys[j]
+            y = y_grid[j]
             V[i, j] = ring_potential_point(x0, y, z, a, q, n_phi)
-
     return V
+
+def axis_potential_analytic(z: float, a: float = 1.0, q: float = 1.0) -> float:
+    return q / np.sqrt(a * a + z * z)
