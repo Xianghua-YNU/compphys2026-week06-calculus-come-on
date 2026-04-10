@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def rate_3alpha(T: float) -> float:
     T8 = T / 1.0e8
     return 5.09e11 * (T8 ** (-3.0)) * np.exp(-44.027 / T8)
